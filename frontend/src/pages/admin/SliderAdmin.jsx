@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { sliderAPI } from '../../services/api';
+import { getImageUrl, sliderAPI } from '../../services/api';
 import { Plus, Edit2, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, Eye, EyeOff } from 'lucide-react';
 import './AdminForms.css';
 
@@ -8,6 +8,8 @@ const SliderAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [existingImage, setExistingImage] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const [formData, setFormData] = useState({
@@ -22,6 +24,17 @@ const SliderAdmin = () => {
   useEffect(() => {
     fetchSliders();
   }, []);
+
+  useEffect(() => {
+    if (!formData.image) {
+      setImagePreview('');
+      return;
+    }
+
+    const url = URL.createObjectURL(formData.image);
+    setImagePreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [formData.image]);
 
   const fetchSliders = async () => {
     try {
@@ -72,7 +85,6 @@ const SliderAdmin = () => {
       submitData.append('title', formData.title);
       submitData.append('subtitle', formData.subtitle || '');
       submitData.append('linkUrl', formData.linkUrl || '');
-      submitData.append('order', formData.order);
       submitData.append('isActive', formData.isActive);
 
       if (formData.image) {
@@ -83,10 +95,11 @@ const SliderAdmin = () => {
       }
 
       if (editingId) {
+        submitData.append('order', String(formData.order ?? 0));
         await sliderAPI.update(editingId, submitData);
         setMessage({ type: 'success', text: 'Slider berhasil diperbarui' });
       } else {
-        submitData.append('order', sliders.length);
+        submitData.append('order', String(sliders.length));
         await sliderAPI.create(submitData);
         setMessage({ type: 'success', text: 'Slider berhasil ditambahkan' });
       }
@@ -108,6 +121,7 @@ const SliderAdmin = () => {
       isActive: slider.isActive,
       image: null
     });
+    setExistingImage(slider.image || '');
     setEditingId(slider.id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -124,7 +138,7 @@ const SliderAdmin = () => {
       await fetchSliders();
     } catch (error) {
       console.error('Error deleting slider:', error);
-      setMessage({ type: 'error', text: 'Gagal menghapus slider' });
+      setMessage({ type: 'error', text: 'Gagal menghapus slider: ' + (error?.message || 'Unknown error') });
     }
   };
 
@@ -184,6 +198,7 @@ const SliderAdmin = () => {
       isActive: true,
       image: null
     });
+    setExistingImage('');
     setEditingId(null);
     setShowForm(false);
   };
@@ -254,6 +269,26 @@ const SliderAdmin = () => {
                 accept="image/*"
                 required={!editingId}
               />
+              {(imagePreview || existingImage) && (
+                <div style={{ marginTop: '0.75rem' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#555', marginBottom: '0.5rem' }}>
+                    {imagePreview ? 'Preview gambar baru:' : 'Gambar saat ini:'}
+                  </div>
+                  <img
+                    src={imagePreview ? imagePreview : getImageUrl(existingImage)}
+                    alt={formData.title ? `Preview: ${formData.title}` : 'Preview slider'}
+                    style={{
+                      width: '100%',
+                      maxWidth: '520px',
+                      height: '120px',
+                      objectFit: 'cover',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb',
+                      display: 'block'
+                    }}
+                  />
+                </div>
+              )}
               <small>Ukuran rekomendasi: 1920x600px, maksimal 2MB. Format: JPG, PNG</small>
             </div>
 
@@ -347,7 +382,7 @@ const SliderAdmin = () => {
                     <td>
                       {item.image ? (
                         <img
-                          src={item.image}
+                          src={getImageUrl(item.image)}
                           alt={item.title}
                           style={{
                             width: '100%',
