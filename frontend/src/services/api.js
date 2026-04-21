@@ -1501,6 +1501,7 @@ export const userAPI = {
   },
 };
 
+
 export default {
   artikel: artikelAPI,
   pengumuman: pengumumanAPI,
