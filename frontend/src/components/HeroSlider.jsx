@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { sliderAPI } from '../services/api';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './HeroSlider.css';
+import { getImageUrl } from '../utils/imagePlaceholder';
 
 const HeroSlider = () => {
   const [sliders, setSliders] = useState([]);
@@ -68,7 +69,7 @@ const HeroSlider = () => {
             key={slide.id}
             className={`slide ${index === currentIndex ? 'active' : ''}`}
             style={{
-              backgroundImage: `url(${slide.image})`,
+              backgroundImage: `url(${getImageUrl(slide.image)})`,
             }}
           >
             <div className="slide-overlay"></div>
