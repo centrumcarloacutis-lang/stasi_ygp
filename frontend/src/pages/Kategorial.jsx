@@ -66,7 +66,7 @@ const Kategorial = () => {
                 >
                   {kat.image && (
                     <div className="kategorial-image">
-                      <img src={`http://localhost:5000${kat.image}`} alt={kat.name} />
+                      <img src={`${getImageUrl(kat.image)}`} alt={kat.name} />
                     </div>
                   )}
 
