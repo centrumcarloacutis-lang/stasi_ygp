@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, Calendar, Target } from 'lucide-react';
-import { kategorialAPI } from '../services/api';
+import { getImageUrl, kategorialAPI } from '../services/api';
 import './Kategorial.css';
 
 const Kategorial = () => {
